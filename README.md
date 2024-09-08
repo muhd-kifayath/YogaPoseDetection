@@ -1,6 +1,6 @@
 # Computer-Vision-AI-Human-Pose-Estimation
 
-Link to website: <a href="https://vatsalshreekant.github.io/Computer-Vision-AI-Human-Pose-Estimation/index.html" target="_blank" title="AA06">AA06</a> 
+Link to website: <a href="https://muhd-kifayath.github.io/YogaPoseDetection/index.html" target="_blank" title="Yoga Pose Detection">Yoga Pose Detection</a> 
 
 ## Objective: 
 The objective was to apply computer vision techniques based on Artificial Intelligence  for human pose detection that gives real-time feedback. The system assesses a yoga pose being performed and gives real time feedback in the form of error indicators along with a score to measure the accuracy of the pose being performed.
