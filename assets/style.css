@@ -9,12 +9,12 @@ html {
 
 body {
   margin: 0;
-  /*background-color: #ce3635;*/
+  background-color: #ce3635;
   text-align: center;
   background-color: #FFFFFF;
   font-family: Helvetica, sans-serif, sans-serif;
   font-size: 14px;
-  overflow: hidden;
+  overflow: scroll;
   min-height: 100%;
   display: flex;
   flex-direction: column;
@@ -22,11 +22,11 @@ body {
 
 h1 {
   text-align: center;
-  font-size: 3.625rem;
+  font-size: 1.5rem;
 }
 
 h4 {
-  font-size: 1.2rem;
+  font-size: 0.8rem;
 }
 
 footer {
@@ -95,11 +95,10 @@ td {
 }
 
 .grid-container {
-  display: grid;
-  grid-template-columns: 1fr 0.5fr 1fr;
-  grid-gap: 10px;
-  padding-left: 1%;
-  padding-right: 1%;
+  display: flex;
+  width: 90%;
+  flex-direction: column;
+  padding: 20px;
 }
 
 .sketch-holder {
@@ -141,7 +140,7 @@ td {
   font-size: 2rem;
 }
 
-.saveAccuracy{
+.saveAccuracy {
   margin: auto;
   text-align: center;
   font-size: 5rem;

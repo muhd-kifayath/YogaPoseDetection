@@ -8,10 +8,10 @@ let numOutputs = 4;
 let brain;
 
 // may need to tweak with these values if we plan to use this method
-let mountainAngleTarget = [175,175,175,175,19,22,179,170,19,20,15,15,20,20];
-let treeAngleTarget = [175,58,175,114,30,30,45,45,23,23,25,45,25,20];
-let goddessAngleTarget = [110,110,110,110,100,100,100,100,120,120,110,110,140,140];
-let warrior2AngleTarget = [160,100,160,100,95,100,175,175,70,80,80,75,90,90];
+let mountainAngleTarget = [175, 175, 175, 175, 19, 22, 179, 170, 19, 20, 15, 15, 20, 20];
+let treeAngleTarget = [175, 58, 175, 114, 30, 30, 45, 45, 23, 23, 25, 45, 25, 20];
+let goddessAngleTarget = [110, 110, 110, 110, 100, 100, 100, 100, 120, 120, 110, 110, 140, 140];
+let warrior2AngleTarget = [160, 100, 160, 100, 95, 100, 175, 175, 70, 80, 80, 75, 90, 90];
 
 let targetArray;
 let label = "";
@@ -26,11 +26,26 @@ let saveAccuracy;
 let saveAccuracyArr = [];
 
 function setup() {
-  canvas = createCanvas(800, 600);
+  let screenWidth = window.innerWidth;
+
+  // Set the canvas width as 80% of the screen width
+  let canvasWidth = screenWidth * 0.8;
+
+  // Calculate the canvas height to maintain a 4:3 aspect ratio
+  let canvasHeight = canvasWidth * (3 / 4);
+
+  // If the calculated height exceeds the screen height, adjust the width and height
+  if (canvasHeight > window.innerHeight * 0.8) {
+    canvasHeight = window.innerHeight * 0.8;
+    canvasWidth = canvasHeight * (4 / 3);
+  }
+
+
+  canvas = createCanvas(canvasWidth, canvasHeight);
   canvas.parent('sketch-holder');
   video = createCapture(VIDEO);
   video.hide();
-  video.size(800,600);
+  video.size(canvasWidth, canvasHeight);
   poseNet = ml5.poseNet(video, modelLoaded);
   poseNet.on('pose', gotPoses);
 
@@ -42,7 +57,7 @@ function setup() {
   loadUserTrainer();
 
   // if button clicked
-  $("#start-btn").on('click', function(){
+  $("#start-btn").on('click', function () {
     setInterval(decrease, 1000);
   });
 
@@ -64,8 +79,8 @@ function setup() {
 }
 
 function decrease() {
-  if(sessionTimer === false) {
-    if(timer > 0) {
+  if (sessionTimer === false) {
+    if (timer > 0) {
       timer--;
       $("#time-remaining").text("Starting in: " + timer + "s");
     } else {
@@ -74,7 +89,7 @@ function decrease() {
       $("#time-remaining").text("Time left: " + timer + "s");
     }
   } else {
-    if(timer > 0) {
+    if (timer > 0) {
       timer--;
       $("#time-remaining").text("Time left: " + timer + "s");
     } else {
@@ -121,14 +136,14 @@ function brainLoaded() {
 function getUserPose() {
   // get user selected pose
   currentPose = localStorage.getItem('SelectedPose');
-  if(currentPose === "Warrior-2") {
+  if (currentPose === "Warrior-2") {
     currentPose = currentPose.split("-")[0];
     currentPose = currentPose + " 2";
   }
   $(".currentPose").text(currentPose + " Pose");
 }
 
-function calculate_angle(P1,P2,P3) {
+function calculate_angle(P1, P2, P3) {
   let angle = (
     Math.atan2(
       P2.position.y - P1.position.y,
@@ -142,14 +157,14 @@ function calculate_angle(P1,P2,P3) {
   // take the abs
   angle = Math.abs(angle);
   if (angle > 180) {
-      angle = 360 - angle;
+    angle = 360 - angle;
   }
-  return Math.round(angle*100) / 100;
+  return Math.round(angle * 100) / 100;
 }
 
-function classifyPose(){
+function classifyPose() {
   // only classify if there is a pose detected from posenet
-  if(pose){
+  if (pose) {
     let inputs = [];
     // angle is denoted by angle(P1,P2,P3) where P1 is the 'origin'
     let lKnee_lAnkle_lHip = calculate_angle(pose.keypoints[13], pose.keypoints[15], pose.keypoints[11]);
@@ -193,7 +208,7 @@ function classifyPose(){
     // get the error for each angles collected
     calculateError(inputs);
   }
-  else{
+  else {
     // delay if it wasnt able to detect the initial pose
     setTimeout(classifyPose, 100);
   }
@@ -201,57 +216,57 @@ function classifyPose(){
 
 function calculateError(anglesArr) {
   let status = $("#time-remaining").text();
-    if(sessionTimer == true && status !== finishedStatus) {
-      let errorsArr = [];
-      let score = 0;
-      let finalScore = 0;
-      // first determine if model is detecting correct pose first
-      if (poseResult === currentPose) {
-        // calculate the difference in error for each angle against the average
-        for (var i=0;i<anglesArr.length;i++) {
-          // check against error of margin per angle
-          let err = anglesArr[i] - targetArray[i];
-          let diff = Math.abs(err);
-          if (diff >= 0 && diff < 10.0) {
-            // this is a good result
-            //console.log("very good");
-            score+=1;
-          } else if (diff >= 10 && diff < 20){
-            // terrible attempt
-            //console.log("alright");
-            score+=0.5;
-          }
-          // other cases, just don't increment score at all
-          // errorsArr contains the abs difference, might be useful later
-          errorsArr.push(err);
+  if (sessionTimer == true && status !== finishedStatus) {
+    let errorsArr = [];
+    let score = 0;
+    let finalScore = 0;
+    // first determine if model is detecting correct pose first
+    if (poseResult === currentPose) {
+      // calculate the difference in error for each angle against the average
+      for (var i = 0; i < anglesArr.length; i++) {
+        // check against error of margin per angle
+        let err = anglesArr[i] - targetArray[i];
+        let diff = Math.abs(err);
+        if (diff >= 0 && diff < 10.0) {
+          // this is a good result
+          //console.log("very good");
+          score += 1;
+        } else if (diff >= 10 && diff < 20) {
+          // terrible attempt
+          //console.log("alright");
+          score += 0.5;
         }
+        // other cases, just don't increment score at all
+        // errorsArr contains the abs difference, might be useful later
+        errorsArr.push(err);
       }
-
-      // set flagged points based on error
-      setFlaggedPoints(errorsArr);
-
-      giveFeedback(anglesArr);
-
-      // display score to user (overall accuracy estimate)
-      finalScore = (score / anglesArr.length) * 100;
-      finalScore = Math.round(finalScore * 10) / 10;
-      $('.accuracy').text(finalScore + " %");
-      saveAccuracy = $('.accuracy').text();
-      saveAccuracy = saveAccuracy.slice(0, -2);
-      saveAccuracy = parseInt(saveAccuracy, 10);
-      
-      saveAccuracyArr.push(saveAccuracy);
-      //console.log(saveAccuracy);
     }
-    let saveAccuracyNum = (saveAccuracyArr.reduce( (a, b)=> (a+b) )/saveAccuracyArr.length);
-     // console.log(saveAccuracyNum);
-     saveAccuracyNum = Math.round(saveAccuracyNum * 10) / 10;
 
-     $('.percent_accuracy').text(saveAccuracyNum + " %");
+    // set flagged points based on error
+    setFlaggedPoints(errorsArr);
+
+    giveFeedback(anglesArr);
+
+    // display score to user (overall accuracy estimate)
+    finalScore = (score / anglesArr.length) * 100;
+    finalScore = Math.round(finalScore * 10) / 10;
+    $('.accuracy').text(finalScore + " %");
+    saveAccuracy = $('.accuracy').text();
+    saveAccuracy = saveAccuracy.slice(0, -2);
+    saveAccuracy = parseInt(saveAccuracy, 10);
+
+    saveAccuracyArr.push(saveAccuracy);
+    //console.log(saveAccuracy);
+  }
+  let saveAccuracyNum = (saveAccuracyArr.reduce((a, b) => (a + b)) / saveAccuracyArr.length);
+  // console.log(saveAccuracyNum);
+  saveAccuracyNum = Math.round(saveAccuracyNum * 10) / 10;
+
+  $('.percent_accuracy').text(saveAccuracyNum + " %");
 
 
-    //if (status === finishedStatus ){
-    //  saveAccuracy = finalScore;
+  //if (status === finishedStatus ){
+  //  saveAccuracy = finalScore;
   //  }
 }
 
@@ -263,52 +278,52 @@ function setFlaggedPoints(errArray) {
 
   let arr = [];
 
-  for (var i=0;i<errArray.length;i++) {
-    if (errArray[i] > 10){
+  for (var i = 0; i < errArray.length; i++) {
+    if (errArray[i] > 10) {
       // these are angles that aren't correct
       // need to improve current method
-      switch(i) {
+      switch (i) {
         case 0:
-          arr = [13,15,11,1];
+          arr = [13, 15, 11, 1];
           break;
         case 1:
-          arr = [14,16,12,1];
+          arr = [14, 16, 12, 1];
           break;
         case 2:
-          arr = [11,13,5,1];
+          arr = [11, 13, 5, 1];
           break;
         case 3:
-          arr = [12,14,6,1];
+          arr = [12, 14, 6, 1];
           break;
         case 4:
-          arr = [5,7,11,1];
+          arr = [5, 7, 11, 1];
           break;
         case 5:
-          arr = [6,8,12,1];
+          arr = [6, 8, 12, 1];
           break;
         case 6:
-          arr = [7,5,9,1];
+          arr = [7, 5, 9, 1];
           break;
         case 7:
-          arr = [8,6,10,1];
+          arr = [8, 6, 10, 1];
           break;
         case 8:
-          arr = [5,15,9,0];
+          arr = [5, 15, 9, 0];
           break;
         case 9:
-          arr = [6,16,10,0];
+          arr = [6, 16, 10, 0];
           break;
         case 10:
-          arr = [5,13,9,0];
+          arr = [5, 13, 9, 0];
           break;
         case 11:
-          arr = [6,14,10,0];
+          arr = [6, 14, 10, 0];
           break;
         case 12:
-          arr = [5,11,9,0];
+          arr = [5, 11, 9, 0];
           break;
         case 13:
-          arr = [6,12,10,0];
+          arr = [6, 12, 10, 0];
           break;
         default:
           console.log("Should not come here");
@@ -318,27 +333,27 @@ function setFlaggedPoints(errArray) {
   }
 }
 
-function giveFeedback(anglesArr){
+function giveFeedback(anglesArr) {
   // refer to this
   // [lKnee_lAnkle_lHip, rKnee_rAnkle_rHip, lHip_lKnee_lShoulder, rHip_rKnee_rShoulder, lShoulder_lHip_lElbow, rShoulder_rHip_rElbow,
   // lElbow_lShoulder_lWrist, rElbow_rShoulder_rWrist, lShoulder_lAnkle_lWrist, rShoulder_rAnkle_rWrist, lShoulder_lKnee_lWrist,
   // rShoulder_rKnee_rWrist, lShoulder_lHip_lWrist, rShoulder_rHip_rWrist]
   console.log(anglesArr.length);
-  for(var i=0; i<anglesArr.length; i+=2) {
-    $('#left-'+ i.toString()).text("∠ " + anglesArr[i]);
-    $('#right-'+ (i+1).toString()).text("∠ " + anglesArr[i+1]);
+  for (var i = 0; i < anglesArr.length; i += 2) {
+    $('#left-' + i.toString()).text("∠ " + anglesArr[i]);
+    $('#right-' + (i + 1).toString()).text("∠ " + anglesArr[i + 1]);
   }
 
 }
 
-function gotResult(error, results){
+function gotResult(error, results) {
   // will compare based on the pose that the user selects, and the pose that the machine learning model returns
-  if(results[0].confidence > 0.75){
+  if (results[0].confidence > 0.75) {
     label = results[0].label;
-    if (label === currentPose){
-        poseResult = currentPose;
+    if (label === currentPose) {
+      poseResult = currentPose;
     } else {
-        poseResult = "";
+      poseResult = "";
     }
   }
   // after first classification, you want to keep classifying for new poses
@@ -348,25 +363,25 @@ function gotResult(error, results){
 function gotPoses(poses) {
   console.log(poses);
   if (poses.length > 0) {
-      pose = poses[0].pose;
-      skeleton = poses[0].skeleton;
+    pose = poses[0].pose;
+    skeleton = poses[0].skeleton;
   }
 }
 
-function modelLoaded () {
-    console.log('poseNet ready');
+function modelLoaded() {
+  console.log('poseNet ready');
 }
 
 function drawPose() {
-  for (let i = 5; i < pose.keypoints.length; i++){
+  for (let i = 5; i < pose.keypoints.length; i++) {
     let x = pose.keypoints[i].position.x;
     let y = pose.keypoints[i].position.y;
-    fill (255);
+    fill(255);
     ellipse(x, y, 16, 16);
   }
   // console.log("skeleton length: " + skeleton.length);
   //sketch original results without any indicators
-  for (let i = 0; i < skeleton.length; i++){
+  for (let i = 0; i < skeleton.length; i++) {
     let a = skeleton[i][0]; //skeleton is a 2D array, the second dimension holds the 2 locations that are connected on the keypoint
     let b = skeleton[i][1];
     stroke(255);
@@ -374,7 +389,7 @@ function drawPose() {
     line(a.position.x, a.position.y, b.position.x, b.position.y);
   }
   // overwrite the lines that are flagged as error
-  for (let i=0;i<flagged.length;i++) {
+  for (let i = 0; i < flagged.length; i++) {
     if (flagged[i][3] === 1) {
       let idx1 = flagged[i][0];
       let idx2 = flagged[i][1];
@@ -390,27 +405,27 @@ function drawPose() {
       let y3 = pose.keypoints[idx3].position.y;
 
       strokeWeight(10);
-      stroke(255,0,0);
-      line(x1,y1,x2,y2);
-      line(x1,y1,x3,y3);
+      stroke(255, 0, 0);
+      line(x1, y1, x2, y2);
+      line(x1, y1, x3, y3);
     }
   }
 }
 
 function draw() {
   push();
-  translate(video.width,0);
-  scale(-1,1);
+  translate(video.width, 0);
+  scale(-1, 1);
   image(video, 0, 0, video.width, video.height);
   if (pose) {
     let status = $("#time-remaining").text();
-    if(sessionTimer == true && status !== finishedStatus) {
+    if (sessionTimer == true && status !== finishedStatus) {
       drawPose();
     }
   }
   pop();
   fill(255);
   textSize(64);
-  textAlign(CENTER,TOP);
+  textAlign(CENTER, TOP);
   text(poseResult, 0, 12, width);
 }
